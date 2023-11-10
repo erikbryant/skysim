@@ -3,47 +3,142 @@ package tableau
 import (
 	"fmt"
 	"github.com/erikbryant/skysim/cards"
+	"slices"
 )
 
-const width = 4
-const height = 3
-
-type Tableau [height][width]int
-
-func Expected() int {
-	return cards.Average() * width * height
+// Cards in the player's tableau may or may not be visible
+type tableauCard struct {
+	rank    int
+	visible bool
 }
 
-func Deal(deck cards.Cards) Tableau {
+// Each player starts with the same size tableau
+const vRows = 4
+const vRowLen = 3
+
+type VRow [vRowLen]tableauCard
+type Tableau []VRow
+
+func Deal(c cards.Cards) Tableau {
 	var t Tableau
+
+	for i := 0; i < vRows; i++ {
+		t = append(t, VRow{})
+	}
 
 	for row := range t {
 		for col := range t[row] {
-			t[row][col] = deck.Draw()
+			t[row][col].rank = c.Draw()
+			t[row][col].visible = false
 		}
 	}
 
 	return t
 }
 
-func (t Tableau) Score() int {
-	score := 0
+func (t Tableau) vRows() int {
+	return len(t)
+}
 
-	for row := range t {
-		for col := range t[row] {
-			score += t[row][col]
+func (t Tableau) vRowLen() int {
+	return vRowLen
+}
+
+func (t Tableau) Expected() int {
+	return cards.AvgRank() * t.vRows() * t.vRowLen()
+}
+
+func (t *Tableau) Reveal(vRow, col int, c *cards.Cards) {
+	(*t)[vRow][col].visible = true
+	t.removeCompletedVRows(c)
+}
+
+func (t *Tableau) Replace(vRow, col, rank int, c *cards.Cards) {
+	c.Discard((*t)[vRow][col].rank)
+	(*t)[vRow][col].rank = rank
+	t.Reveal(vRow, col, c)
+	// We can skip this call, as Reveal already checked
+	// t.removeCompletedVRows(c)
+}
+
+func matchingVRow(vRow VRow) bool {
+	val := vRow[0].rank
+
+	for _, card := range vRow {
+		if !card.visible || card.rank != val {
+			return false
 		}
 	}
 
-	return score
+	return true
 }
 
-func (t Tableau) Print() {
+func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
+	for vRow := len(*t) - 1; vRow >= 0; vRow-- {
+		if matchingVRow((*t)[vRow]) {
+			for i := range (*t)[vRow] {
+				c.Discard((*t)[vRow][i].rank)
+			}
+			*t = slices.DeleteFunc(*t, matchingVRow)
+		}
+	}
+}
+
+// Score returns the visible, expected, and actual scores
+func (t Tableau) Score() (int, int, int) {
+	vScore := 0
+	eScore := 0
+	aScore := 0
+
 	for row := range t {
 		for col := range t[row] {
-			fmt.Printf("%2d ", t[row][col])
+			if t[row][col].visible {
+				vScore += t[row][col].rank
+				eScore += t[row][col].rank
+			} else {
+				eScore += cards.AvgRank()
+			}
+			aScore += t[row][col].rank
+		}
+	}
+
+	return vScore, eScore, aScore
+}
+
+func (t Tableau) Print(c cards.Cards) {
+	if t.vRows() == 0 {
+		fmt.Println("All vertical rows empty! :)")
+		return
+	}
+
+	for col := range t[0] {
+		for vRow := range t {
+			if t[vRow][col].visible {
+				fmt.Printf("%2d ", t[vRow][col].rank)
+			} else {
+				fmt.Printf(" X ")
+			}
 		}
 		fmt.Println()
 	}
 
+	c.Print()
+}
+
+func (t Tableau) PrintDebug(c cards.Cards) {
+	if t.vRows() == 0 {
+		fmt.Println("All vertical rows empty! :)")
+		return
+	}
+
+	for col := range t[0] {
+		for vRow := range t {
+			fmt.Printf("%2d ", t[vRow][col].rank)
+		}
+		fmt.Println()
+	}
+
+	c.PrintDebug()
+
+	fmt.Println(t.Score())
 }

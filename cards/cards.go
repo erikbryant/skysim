@@ -6,66 +6,124 @@ import (
 	"time"
 )
 
-var distribution = [][2]int{
-	[2]int{5, -2},
-	[2]int{10, -1},
-	[2]int{15, 0},
-	[2]int{10, 1},
-	[2]int{10, 2},
-	[2]int{10, 3},
-	[2]int{10, 4},
-	[2]int{10, 5},
-	[2]int{10, 6},
-	[2]int{10, 7},
-	[2]int{10, 8},
-	[2]int{10, 9},
-	[2]int{10, 10},
-	[2]int{10, 11},
-	[2]int{10, 12},
+// How many cards are there of each rank
+type dist struct {
+	rank  int
+	count int
 }
 
-type Cards []int
+var distribution = []dist{
+	dist{-2, 5},
+	dist{-1, 10},
+	dist{0, 15},
+	dist{1, 10},
+	dist{2, 10},
+	dist{3, 10},
+	dist{4, 10},
+	dist{5, 10},
+	dist{6, 10},
+	dist{7, 10},
+	dist{8, 10},
+	dist{9, 10},
+	dist{10, 10},
+	dist{11, 10},
+	dist{12, 10},
+}
 
-func Average() int {
-	deck := Deck()
+type Cards struct {
+	drawPile    []int
+	discardPile []int
+}
+
+// AvgRank returns the average rank across all cards
+func AvgRank() int {
 	sum := 0
 	count := 0
-	for _, val := range deck {
-		count++
-		sum += val
+	for _, d := range distribution {
+		count += d.count
+		sum += d.count * d.rank
 	}
 	return sum / count
 }
 
-func Deck() Cards {
-	deck := []int{}
+// New returns a shuffled draw pile and a discard pile with one card
+func New() Cards {
+	var c Cards
 
-	for _, val := range distribution {
-		for i := 1; i <= val[0]; i++ {
-			deck = append(deck, val[1])
+	for _, d := range distribution {
+		for i := 1; i <= d.count; i++ {
+			c.drawPile = append(c.drawPile, d.rank)
 		}
 	}
 
-	return deck
+	Shuffle(c.drawPile)
+
+	// Discard the top card
+	c.Discard(c.Draw())
+
+	return c
 }
 
-func (c Cards) Shuffle() {
+// Shuffle randomizes the order of the given cards
+func Shuffle(c []int) {
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(c), func(i, j int) { c[i], c[j] = c[j], c[i] })
 }
 
+// Draw returns the top card from the draw pile
 func (c *Cards) Draw() int {
-	card := (*c)[0]
+	if len(c.drawPile) == 0 {
+		// Leave the top card of the discard pile in the discard pile
+		// Shuffle the rest into the draw pile
+		c.drawPile = c.discardPile[1:]
+		c.discardPile = []int{c.discardPile[0]}
+		Shuffle(c.drawPile)
+	}
 
-	*c = (*c)[1:]
-
-	return card
+	rank := c.drawPile[0]
+	c.drawPile = c.drawPile[1:]
+	return rank
 }
 
-func (c *Cards) Print() {
-	for _, val := range *c {
-		fmt.Print(val)
-		fmt.Print(" ")
+// Discard places the given card on top of the discard pile
+func (c *Cards) Discard(rank int) {
+	c.discardPile = append(c.discardPile, rank)
+}
+
+// LookDiscard returns the rank of the top card in the discard pile
+func (c Cards) LookDiscard() int {
+	return c.discardPile[len(c.discardPile)-1]
+}
+
+// DrawDiscard draws the top card from the discard pile
+func (c *Cards) DrawDiscard() int {
+	rank := c.LookDiscard()
+	c.discardPile = c.discardPile[:len(c.discardPile)-1]
+	return rank
+}
+
+func (c Cards) Print() {
+	fmt.Println("X", c.LookDiscard())
+}
+
+// shorten returns a string with up to 20 elements from the start/end of the slice
+func shorten(s []int) string {
+	l := len(s)
+
+	if l <= 20 {
+		return fmt.Sprint(s)
 	}
-	fmt.Println()
+
+	str := ""
+	str += fmt.Sprint(s[0:6])
+	str += fmt.Sprint(" ... ")
+	str += fmt.Sprint(s[l-6 : l])
+
+	return str
+}
+
+// Print prints the given cards in order
+func (c Cards) PrintDebug() {
+	fmt.Println("Draw: ->", shorten(c.drawPile))
+	fmt.Println("Discard:", shorten(c.discardPile), "<-")
 }
