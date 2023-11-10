@@ -1,28 +1,41 @@
 package cards
 
 import (
-	"sort"
+	"fmt"
+	"math/rand"
+	"time"
 )
 
-const distribution = [][]int{
-	[]int{5, -2},
-	[]int{10, -1},
-	[]int{15, 0},
-	[]int{10, 1},
-	[]int{10, 2},
-	[]int{10, 3},
-	[]int{10, 4},
-	[]int{10, 5},
-	[]int{10, 6},
-	[]int{10, 7},
-	[]int{10, 8},
-	[]int{10, 9},
-	[]int{10, 10},
-	[]int{10, 11},
-	[]int{10, 12},
+var distribution = [][2]int{
+	[2]int{5, -2},
+	[2]int{10, -1},
+	[2]int{15, 0},
+	[2]int{10, 1},
+	[2]int{10, 2},
+	[2]int{10, 3},
+	[2]int{10, 4},
+	[2]int{10, 5},
+	[2]int{10, 6},
+	[2]int{10, 7},
+	[2]int{10, 8},
+	[2]int{10, 9},
+	[2]int{10, 10},
+	[2]int{10, 11},
+	[2]int{10, 12},
 }
 
 type Cards []int
+
+func Average() int {
+	deck := Deck()
+	sum := 0
+	count := 0
+	for _, val := range deck {
+		count++
+		sum += val
+	}
+	return sum / count
+}
 
 func Deck() Cards {
 	deck := []int{}
@@ -36,13 +49,22 @@ func Deck() Cards {
 	return deck
 }
 
-func (c *Cards) Shuffle() Cards {
-	sort.Shuffle(rand.New(rand.NewSource(time.Now().UnixNano())), c)
+func (c Cards) Shuffle() {
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(c), func(i, j int) { c[i], c[j] = c[j], c[i] })
+}
+
+func (c *Cards) Draw() int {
+	card := (*c)[0]
+
+	*c = (*c)[1:]
+
+	return card
 }
 
 func (c *Cards) Print() {
-	for _, val := range c {
-		fmt.Print(c)
+	for _, val := range *c {
+		fmt.Print(val)
 		fmt.Print(" ")
 	}
 	fmt.Println()

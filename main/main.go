@@ -1,12 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/erikbryant/skysim/cards"
+	"github.com/erikbryant/skysim/tableau"
 )
 
 func main() {
-	deck := cards.Deck()
-	deck.Print()
-	deck.Shuffle()
-	deck.Print()
+	fmt.Println(tableau.Expected())
 }
