@@ -45,7 +45,7 @@ func Reveal(t *tableau.Tableau, c *cards.Cards) {
 
 	for {
 		t.Print(*c)
-		fmt.Print("\nChoose a card to reveal (c r): ")
+		fmt.Print("\nChoose a card to reveal (vRow hRow): ")
 		fmt.Scanf("%d %d", &vRow, &hRow)
 		if t.Reveal(vRow, hRow, c) == nil {
 			break
@@ -59,6 +59,7 @@ func Draw(t *tableau.Tableau, c *cards.Cards) {
 	fmt.Print("Drew: ")
 	mask := cards.MaskForRank(rank)
 	mask.Printf("%2d", rank)
+
 	fmt.Println()
 	fmt.Println("(r)eplace a tableau card")
 	fmt.Println("(d)iscard it and reveal one")
@@ -77,7 +78,7 @@ func Replace(t *tableau.Tableau, c *cards.Cards, rank int) {
 	var vRow int
 	var hRow int
 
-	fmt.Print("\nChoose a card to replace (c r): ")
+	fmt.Print("\nChoose a card to replace (vRow hRow): ")
 	fmt.Scanf("%d %d", &vRow, &hRow)
 	t.Replace(vRow, hRow, rank, c)
 }
