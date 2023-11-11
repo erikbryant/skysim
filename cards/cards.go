@@ -157,7 +157,7 @@ func shortPrint(s []int) {
 		mask.Printf("%2d", s[i])
 		fmt.Print(" ")
 	}
-	fmt.Print("... ")
+	fmt.Print(".. ")
 	for i := l - 6; i < l; i++ {
 		mask := MaskForRank(s[i])
 		mask.Printf("%2d", s[i])
