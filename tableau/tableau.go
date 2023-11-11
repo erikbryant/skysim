@@ -19,7 +19,7 @@ const vRowLen = 3
 type VRow [vRowLen]tableauCard
 type Tableau []VRow
 
-func Deal(c cards.Cards) Tableau {
+func Deal(c *cards.Cards) Tableau {
 	var t Tableau
 
 	for i := 0; i < vRows; i++ {
@@ -53,7 +53,7 @@ func (t Tableau) Get(vRow, hRow int) (tableauCard, error) {
 	if vRow < 0 || hRow < 0 {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
 	}
-	if vRow > t.vRows() || hRow > t.vRowLen() {
+	if vRow >= t.vRows() || hRow >= t.vRowLen() {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
 	}
 	return t[vRow][hRow], nil
@@ -124,6 +124,16 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 				c.Discard(tc.rank)
 			}
 			*t = slices.DeleteFunc(*t, matchingVRow)
+		}
+	}
+}
+
+func (t *Tableau) RevealAll(c *cards.Cards) {
+	// Count backwards, as some of the vRows may disappear
+	// when they are revealed if they are a matching row
+	for vRow := t.vRows() - 1; vRow >= 0; vRow-- {
+		for hRow := range (*t)[vRow] {
+			t.Reveal(vRow, hRow, c)
 		}
 	}
 }

@@ -102,6 +102,7 @@ func TakeAnotherTurn(t *tableau.Tableau, c *cards.Cards) bool {
 	case 'p':
 		fmt.Println()
 		t.PrintDebug(*c)
+		TakeAnotherTurn(t, c)
 	case 'q':
 		return false
 	}
@@ -109,16 +110,49 @@ func TakeAnotherTurn(t *tableau.Tableau, c *cards.Cards) bool {
 	return !t.Out()
 }
 
-func main() {
-	c := cards.New()
-	p1 := tableau.Deal(c)
+func Play(players []tableau.Tableau, c *cards.Cards) {
+	// Each player reveals two cards
+	for i := range players {
+		fmt.Printf("\n** Player %d **\n", i)
+		Reveal(&players[i], c)
+		Reveal(&players[i], c)
+	}
 
-	Reveal(&p1, &c)
-	Reveal(&p1, &c)
-
-	for TakeAnotherTurn(&p1, &c) {
+	// Players alternate turns until someone goes out
+	firstOut := -1
+	gameOver := false
+	for !gameOver {
+		for i := range players {
+			if firstOut >= 0 && i == firstOut {
+				gameOver = true
+				break
+			}
+			fmt.Printf("\n** Player %d **\n", i)
+			if !TakeAnotherTurn(&players[i], c) && firstOut < 0 {
+				// Record which player went out first
+				firstOut = i
+			}
+		}
 	}
 
 	fmt.Println()
-	p1.PrintDebug(c)
+
+	// Players reveal and score
+	for i := range players {
+		fmt.Printf("\n** Player %d **\n", i)
+		players[i].RevealAll(c)
+		players[i].Print(*c)
+	}
+}
+
+func main() {
+	// Set up the game
+	c := cards.New()
+	players := []tableau.Tableau{
+		tableau.Deal(&c),
+		tableau.Deal(&c),
+		tableau.Deal(&c),
+	}
+
+	Play(players, &c)
 }
