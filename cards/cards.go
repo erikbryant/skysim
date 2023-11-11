@@ -2,6 +2,7 @@ package cards
 
 import (
 	"fmt"
+	"github.com/fatih/color"
 	"math/rand"
 	"time"
 )
@@ -28,6 +29,31 @@ var distribution = []dist{
 	dist{10, 10},
 	dist{11, 10},
 	dist{12, 10},
+}
+
+// maskForRank returns the console text mask for the given rank
+func MaskForRank(rank int) *color.Color {
+	mask := color.New(color.FgBlack, color.Bold)
+
+	if rank <= -1 {
+		return mask.Add(color.BgBlue)
+	}
+	if rank == 0 {
+		return mask.Add(color.BgCyan)
+	}
+	if rank <= 4 {
+		return mask.Add(color.BgGreen)
+	}
+	if rank <= 8 {
+		return mask.Add(color.BgYellow)
+	}
+
+	return mask.Add(color.BgRed)
+}
+
+func MaskForBack() *color.Color {
+	mask := color.New(color.FgBlack, color.Bold)
+	return mask.Add(color.BgWhite)
 }
 
 type Cards struct {
@@ -75,13 +101,14 @@ func (c *Cards) Draw() int {
 	if len(c.drawPile) == 0 {
 		// Leave the top card of the discard pile in the discard pile
 		// Shuffle the rest into the draw pile
-		c.drawPile = c.discardPile[1:]
-		c.discardPile = []int{c.discardPile[0]}
+		c.drawPile = c.discardPile[:len(c.discardPile)-1]
+		c.discardPile = []int{c.discardPile[len(c.discardPile)-1]}
 		Shuffle(c.drawPile)
 	}
 
 	rank := c.drawPile[0]
 	c.drawPile = c.drawPile[1:]
+
 	return rank
 }
 
@@ -103,27 +130,47 @@ func (c *Cards) DrawDiscard() int {
 }
 
 func (c Cards) Print() {
-	fmt.Println("X", c.LookDiscard())
+	mask := MaskForBack()
+	mask.Printf("SJ")
+	fmt.Print(" ")
+	rank := c.LookDiscard()
+	mask = MaskForRank(rank)
+	mask.Printf("%2d", rank)
+	fmt.Println()
 }
 
-// shorten returns a string with up to 20 elements from the start/end of the slice
-func shorten(s []int) string {
+// shortPrint prints a string with up to 20 elements from the start/end of the slice
+func shortPrint(s []int) {
 	l := len(s)
 
 	if l <= 20 {
-		return fmt.Sprint(s)
+		for _, rank := range s {
+			mask := MaskForRank(rank)
+			mask.Printf("%2d", rank)
+			fmt.Print(" ")
+		}
+		return
 	}
 
-	str := ""
-	str += fmt.Sprint(s[0:6])
-	str += fmt.Sprint(" ... ")
-	str += fmt.Sprint(s[l-6 : l])
-
-	return str
+	for i := 0; i <= 5; i++ {
+		mask := MaskForRank(s[i])
+		mask.Printf("%2d", s[i])
+		fmt.Print(" ")
+	}
+	fmt.Print("... ")
+	for i := l - 6; i < l; i++ {
+		mask := MaskForRank(s[i])
+		mask.Printf("%2d", s[i])
+		fmt.Print(" ")
+	}
 }
 
 // Print prints the given cards in order
 func (c Cards) PrintDebug() {
-	fmt.Println("Draw: ->", shorten(c.drawPile))
-	fmt.Println("Discard:", shorten(c.discardPile), "<-")
+	fmt.Print("Draw: -> ")
+	shortPrint(c.drawPile)
+	fmt.Println()
+	fmt.Print("Discard: ")
+	shortPrint(c.discardPile)
+	fmt.Println("<-")
 }

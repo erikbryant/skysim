@@ -20,7 +20,10 @@ func Draw(t *tableau.Tableau, c *cards.Cards) {
 	var choice string
 
 	rank := c.Draw()
-	fmt.Println("Drew: ", rank)
+	fmt.Print("Drew: ")
+	mask := cards.MaskForRank(rank)
+	mask.Printf("%2d", rank)
+	fmt.Println()
 	fmt.Println("(r)eplace a tableau card")
 	fmt.Println("(d)iscard it and reveal one")
 	fmt.Scanf("%s", &choice)

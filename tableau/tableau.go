@@ -106,6 +106,10 @@ func (t Tableau) Score() (int, int, int) {
 }
 
 func (t Tableau) Print(c cards.Cards) {
+	visible, estimated, _ := t.Score()
+	fmt.Printf("%2d %2d ", visible, estimated)
+	c.Print()
+
 	if t.vRows() == 0 {
 		fmt.Println("All vertical rows empty! :)")
 		return
@@ -114,15 +118,18 @@ func (t Tableau) Print(c cards.Cards) {
 	for col := range t[0] {
 		for vRow := range t {
 			if t[vRow][col].visible {
-				fmt.Printf("%2d ", t[vRow][col].rank)
+				rank := t[vRow][col].rank
+				mask := cards.MaskForRank(rank)
+				mask.Printf("%2d", rank)
+				fmt.Print(" ")
 			} else {
-				fmt.Printf(" X ")
+				mask := cards.MaskForBack()
+				mask.Printf("SJ")
+				fmt.Print(" ")
 			}
 		}
 		fmt.Println()
 	}
-
-	c.Print()
 }
 
 func (t Tableau) PrintDebug(c cards.Cards) {
@@ -133,7 +140,10 @@ func (t Tableau) PrintDebug(c cards.Cards) {
 
 	for col := range t[0] {
 		for vRow := range t {
-			fmt.Printf("%2d ", t[vRow][col].rank)
+			rank := t[vRow][col].rank
+			mask := cards.MaskForRank(rank)
+			mask.Printf("%2d", rank)
+			fmt.Print(" ")
 		}
 		fmt.Println()
 	}
