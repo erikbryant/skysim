@@ -43,10 +43,14 @@ func Reveal(t *tableau.Tableau, c *cards.Cards) {
 	var vRow int
 	var hRow int
 
-	t.Print(*c)
-	fmt.Print("\nChoose a card to reveal (c r): ")
-	fmt.Scanf("%d %d", &vRow, &hRow)
-	t.Reveal(vRow, hRow, c)
+	for {
+		t.Print(*c)
+		fmt.Print("\nChoose a card to reveal (c r): ")
+		fmt.Scanf("%d %d", &vRow, &hRow)
+		if t.Reveal(vRow, hRow, c) == nil {
+			break
+		}
+	}
 }
 
 // Draw draws (and plays) a card

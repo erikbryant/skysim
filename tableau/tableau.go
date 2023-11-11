@@ -48,17 +48,35 @@ func (t Tableau) Expected() int {
 	return cards.AvgRank() * t.vRows() * t.vRowLen()
 }
 
-func (t *Tableau) Reveal(vRow, col int, c *cards.Cards) {
-	(*t)[vRow][col].visible = true
-	t.removeCompletedVRows(c)
+func (t Tableau) Get(row, col int) (tableauCard, error) {
+	if row < 0 || col < 0 {
+		return tableauCard{}, fmt.Errorf("Out of bounds")
+	}
+	if row > t.vRows() || col > t.vRowLen() {
+		return tableauCard{}, fmt.Errorf("Out of bounds")
+	}
+	return t[row][col], nil
 }
 
+// Reveal reveals the given card, or returns error if that is invalid
+func (t *Tableau) Reveal(vRow, col int, c *cards.Cards) error {
+	tc, err := t.Get(vRow, col)
+	if err != nil || tc.visible {
+		return fmt.Errorf("Reveal failed")
+	}
+
+	(*t)[vRow][col].visible = true
+	t.removeCompletedVRows(c)
+
+	return nil
+}
+
+// Replace replaces a tableau card with the given card
 func (t *Tableau) Replace(vRow, col, rank int, c *cards.Cards) {
 	c.Discard((*t)[vRow][col].rank)
 	(*t)[vRow][col].rank = rank
-	t.Reveal(vRow, col, c)
-	// We can skip this call, as Reveal already checked
-	// t.removeCompletedVRows(c)
+	(*t)[vRow][col].visible = true
+	t.removeCompletedVRows(c)
 }
 
 func matchingVRow(vRow VRow) bool {
