@@ -26,10 +26,10 @@ func Deal(c cards.Cards) Tableau {
 		t = append(t, VRow{})
 	}
 
-	for row := range t {
-		for col := range t[row] {
-			t[row][col].rank = c.Draw()
-			t[row][col].visible = false
+	for vRow := range t {
+		for hRow := range t[vRow] {
+			t[vRow][hRow].rank = c.Draw()
+			t[vRow][hRow].visible = false
 		}
 	}
 
@@ -48,34 +48,34 @@ func (t Tableau) Expected() int {
 	return cards.AvgRank() * t.vRows() * t.vRowLen()
 }
 
-func (t Tableau) Get(row, col int) (tableauCard, error) {
-	if row < 0 || col < 0 {
+func (t Tableau) Get(vRow, hRow int) (tableauCard, error) {
+	if vRow < 0 || hRow < 0 {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
 	}
-	if row > t.vRows() || col > t.vRowLen() {
+	if vRow > t.vRows() || hRow > t.vRowLen() {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
 	}
-	return t[row][col], nil
+	return t[vRow][hRow], nil
 }
 
 // Reveal reveals the given card, or returns error if that is invalid
-func (t *Tableau) Reveal(vRow, col int, c *cards.Cards) error {
-	tc, err := t.Get(vRow, col)
+func (t *Tableau) Reveal(vRow, hRow int, c *cards.Cards) error {
+	tc, err := t.Get(vRow, hRow)
 	if err != nil || tc.visible {
 		return fmt.Errorf("Reveal failed")
 	}
 
-	(*t)[vRow][col].visible = true
+	(*t)[vRow][hRow].visible = true
 	t.removeCompletedVRows(c)
 
 	return nil
 }
 
 // Replace replaces a tableau card with the given card
-func (t *Tableau) Replace(vRow, col, rank int, c *cards.Cards) {
-	c.Discard((*t)[vRow][col].rank)
-	(*t)[vRow][col].rank = rank
-	(*t)[vRow][col].visible = true
+func (t *Tableau) Replace(vRow, hRow, rank int, c *cards.Cards) {
+	c.Discard((*t)[vRow][hRow].rank)
+	(*t)[vRow][hRow].rank = rank
+	(*t)[vRow][hRow].visible = true
 	t.removeCompletedVRows(c)
 }
 
@@ -104,9 +104,9 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 
 // Out returns true if the player is out (all cards exposed)
 func (t Tableau) Out() bool {
-	for row := range t {
-		for col := range t[row] {
-			if !t[row][col].visible {
+	for vRow := range t {
+		for hRow := range t[vRow] {
+			if !t[vRow][hRow].visible {
 				return false
 			}
 		}
@@ -121,15 +121,15 @@ func (t Tableau) Score() (int, int, int) {
 	eScore := 0
 	aScore := 0
 
-	for row := range t {
-		for col := range t[row] {
-			if t[row][col].visible {
-				vScore += t[row][col].rank
-				eScore += t[row][col].rank
+	for vRow := range t {
+		for hRow := range t[vRow] {
+			if t[vRow][hRow].visible {
+				vScore += t[vRow][hRow].rank
+				eScore += t[vRow][hRow].rank
 			} else {
 				eScore += cards.AvgRank()
 			}
-			aScore += t[row][col].rank
+			aScore += t[vRow][hRow].rank
 		}
 	}
 
@@ -146,10 +146,10 @@ func (t Tableau) Print(c cards.Cards) {
 		return
 	}
 
-	for col := range t[0] {
+	for hRow := range t[0] {
 		for vRow := range t {
-			if t[vRow][col].visible {
-				rank := t[vRow][col].rank
+			if t[vRow][hRow].visible {
+				rank := t[vRow][hRow].rank
 				mask := cards.MaskForRank(rank)
 				mask.Printf("%2d", rank)
 				fmt.Print(" ")
@@ -169,9 +169,9 @@ func (t Tableau) PrintDebug(c cards.Cards) {
 		return
 	}
 
-	for col := range t[0] {
+	for hRow := range t[0] {
 		for vRow := range t {
-			rank := t[vRow][col].rank
+			rank := t[vRow][hRow].rank
 			mask := cards.MaskForRank(rank)
 			mask.Printf("%2d", rank)
 			fmt.Print(" ")
