@@ -84,6 +84,19 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 	}
 }
 
+// Out returns true if the player is out (all cards exposed)
+func (t Tableau) Out() bool {
+	for row := range t {
+		for col := range t[row] {
+			if !t[row][col].visible {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 // Score returns the visible, expected, and actual scores
 func (t Tableau) Score() (int, int, int) {
 	vScore := 0
