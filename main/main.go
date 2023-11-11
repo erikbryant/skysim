@@ -4,8 +4,41 @@ import (
 	"fmt"
 	"github.com/erikbryant/skysim/cards"
 	"github.com/erikbryant/skysim/tableau"
+	"os"
+	"strings"
+
+	"golang.org/x/term"
 )
 
+// readChar returns the key that was pressed
+func readChar() byte {
+	// switch stdin into 'raw' mode
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		panic(err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	b := make([]byte, 1)
+	_, err = os.Stdin.Read(b)
+	if err != nil {
+		panic(err)
+	}
+
+	return b[0]
+}
+
+// choose returns which of the choices the user selects
+func choose(choices string) byte {
+	for {
+		choice := readChar()
+		if strings.Index(choices, string(choice)) != -1 {
+			return choice
+		}
+	}
+}
+
+// Reveal reveals a single card
 func Reveal(t *tableau.Tableau, c *cards.Cards) {
 	var vRow int
 	var hRow int
@@ -16,9 +49,8 @@ func Reveal(t *tableau.Tableau, c *cards.Cards) {
 	t.Reveal(vRow, hRow, c)
 }
 
+// Draw draws (and plays) a card
 func Draw(t *tableau.Tableau, c *cards.Cards) {
-	var choice string
-
 	rank := c.Draw()
 	fmt.Print("Drew: ")
 	mask := cards.MaskForRank(rank)
@@ -26,18 +58,17 @@ func Draw(t *tableau.Tableau, c *cards.Cards) {
 	fmt.Println()
 	fmt.Println("(r)eplace a tableau card")
 	fmt.Println("(d)iscard it and reveal one")
-	fmt.Scanf("%s", &choice)
-	switch choice {
-	case "r":
+
+	switch choose("rd") {
+	case 'r':
 		Replace(t, c, rank)
-	case "d":
+	case 'd':
 		c.Discard(rank)
 		Reveal(t, c)
-	default:
-		fmt.Print("\nUnknown input. Please try again.\n\n")
 	}
 }
 
+// Replace replaces a card in the tableau with the given card
 func Replace(t *tableau.Tableau, c *cards.Cards, rank int) {
 	var vRow int
 	var hRow int
@@ -47,34 +78,30 @@ func Replace(t *tableau.Tableau, c *cards.Cards, rank int) {
 	t.Replace(vRow, hRow, rank, c)
 }
 
+// TakeAnotherTurn processes a player's turn and returns whether they have gone out (or quit)
 func TakeAnotherTurn(t *tableau.Tableau, c *cards.Cards) bool {
-	var choice string
-
 	fmt.Println()
 	t.Print(*c)
+
 	fmt.Println("(d)raw a new card")
 	fmt.Println("(r)eplace a tableau card with the discard")
 	fmt.Println("(p)rint debug")
 	fmt.Println("(q)uit")
-	fmt.Print("Choose one (drpq): ")
-	fmt.Scanf("%s", &choice)
 
-	switch choice {
-	case "d":
+	switch choose("drpq") {
+	case 'd':
 		Draw(t, c)
-	case "r":
+	case 'r':
 		rank := c.DrawDiscard()
 		Replace(t, c, rank)
-	case "p":
+	case 'p':
 		fmt.Println()
 		t.PrintDebug(*c)
-	case "q":
+	case 'q':
 		return false
-	default:
-		fmt.Print("\nUnknown input. Please try again.\n\n")
 	}
 
-	return true
+	return !t.Out()
 }
 
 func main() {
@@ -84,9 +111,9 @@ func main() {
 	Reveal(&p1, &c)
 	Reveal(&p1, &c)
 
-	for {
-		if !TakeAnotherTurn(&p1, &c) {
-			break
-		}
+	for TakeAnotherTurn(&p1, &c) {
 	}
+
+	fmt.Println()
+	p1.PrintDebug(c)
 }
