@@ -72,13 +72,23 @@ func (t *Tableau) Reveal(vRow, hRow int, c *cards.Cards) error {
 }
 
 // Replace replaces a tableau card with the given card
-func (t *Tableau) Replace(vRow, hRow, rank int, c *cards.Cards) {
-	c.Discard((*t)[vRow][hRow].rank)
+func (t *Tableau) Replace(vRow, hRow, rank int, c *cards.Cards) error {
+	tc, err := t.Get(vRow, hRow)
+	if err != nil {
+		return err
+	}
+
+	c.Discard(tc.rank)
+
 	(*t)[vRow][hRow].rank = rank
 	(*t)[vRow][hRow].visible = true
+
 	t.removeCompletedVRows(c)
+
+	return nil
 }
 
+// matchingVRow returns whether all cards in the vertical row match and are visible
 func matchingVRow(vRow VRow) bool {
 	val := vRow[0].rank
 
@@ -91,6 +101,7 @@ func matchingVRow(vRow VRow) bool {
 	return true
 }
 
+// removeCompletedVRows removed any vertical rows where the cards match and are visible
 func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 	for vRow := len(*t) - 1; vRow >= 0; vRow-- {
 		if matchingVRow((*t)[vRow]) {
@@ -106,7 +117,8 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 func (t Tableau) Out() bool {
 	for vRow := range t {
 		for hRow := range t[vRow] {
-			if !t[vRow][hRow].visible {
+			tc, err := t.Get(vRow, hRow)
+			if err != nil || !tc.visible {
 				return false
 			}
 		}
@@ -123,13 +135,14 @@ func (t Tableau) Score() (int, int, int) {
 
 	for vRow := range t {
 		for hRow := range t[vRow] {
-			if t[vRow][hRow].visible {
-				vScore += t[vRow][hRow].rank
-				eScore += t[vRow][hRow].rank
+			tc, _ := t.Get(vRow, hRow)
+			if tc.visible {
+				vScore += tc.rank
+				eScore += tc.rank
 			} else {
 				eScore += cards.AvgRank()
 			}
-			aScore += t[vRow][hRow].rank
+			aScore += tc.rank
 		}
 	}
 
@@ -148,10 +161,10 @@ func (t Tableau) Print(c cards.Cards) {
 
 	for hRow := range t[0] {
 		for vRow := range t {
-			if t[vRow][hRow].visible {
-				rank := t[vRow][hRow].rank
-				mask := cards.MaskForRank(rank)
-				mask.Printf("%2d", rank)
+			tc, _ := t.Get(vRow, hRow)
+			if tc.visible {
+				mask := cards.MaskForRank(tc.rank)
+				mask.Printf("%2d", tc.rank)
 				fmt.Print(" ")
 			} else {
 				mask := cards.MaskForBack()
@@ -171,9 +184,9 @@ func (t Tableau) PrintDebug(c cards.Cards) {
 
 	for hRow := range t[0] {
 		for vRow := range t {
-			rank := t[vRow][hRow].rank
-			mask := cards.MaskForRank(rank)
-			mask.Printf("%2d", rank)
+			tc, _ := t.Get(vRow, hRow)
+			mask := cards.MaskForRank(tc.rank)
+			mask.Printf("%2d", tc.rank)
 			fmt.Print(" ")
 		}
 		fmt.Println()
