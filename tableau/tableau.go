@@ -48,6 +48,7 @@ func (t Tableau) Expected() int {
 	return cards.AvgRank() * t.vRows() * t.vRowLen()
 }
 
+// Get returns the card at the  given location or an error if that is out of bounds
 func (t Tableau) Get(vRow, hRow int) (tableauCard, error) {
 	if vRow < 0 || hRow < 0 {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
@@ -56,6 +57,19 @@ func (t Tableau) Get(vRow, hRow int) (tableauCard, error) {
 		return tableauCard{}, fmt.Errorf("Out of bounds")
 	}
 	return t[vRow][hRow], nil
+}
+
+// Set sets the rank at the  given location or returns an error if that is out of bounds
+func (t *Tableau) SetRank(vRow, hRow, rank int) error {
+	if vRow < 0 || hRow < 0 {
+		return fmt.Errorf("Out of bounds")
+	}
+	if vRow > t.vRows() || hRow > t.vRowLen() {
+		return fmt.Errorf("Out of bounds")
+	}
+
+	(*t)[vRow][hRow].rank = rank
+	return nil
 }
 
 // Reveal reveals the given card, or returns error if that is invalid
@@ -80,8 +94,8 @@ func (t *Tableau) Replace(vRow, hRow, rank int, c *cards.Cards) error {
 
 	c.Discard(tc.rank)
 
-	(*t)[vRow][hRow].rank = rank
-	(*t)[vRow][hRow].visible = true
+	t.SetRank(vRow, hRow, rank)
+	t.Reveal(vRow, hRow, c)
 
 	t.removeCompletedVRows(c)
 
@@ -105,8 +119,9 @@ func matchingVRow(vRow VRow) bool {
 func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 	for vRow := len(*t) - 1; vRow >= 0; vRow-- {
 		if matchingVRow((*t)[vRow]) {
-			for i := range (*t)[vRow] {
-				c.Discard((*t)[vRow][i].rank)
+			for hRow := range (*t)[vRow] {
+				tc, _ := t.Get(vRow, hRow)
+				c.Discard(tc.rank)
 			}
 			*t = slices.DeleteFunc(*t, matchingVRow)
 		}
@@ -117,8 +132,8 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 func (t Tableau) Out() bool {
 	for vRow := range t {
 		for hRow := range t[vRow] {
-			tc, err := t.Get(vRow, hRow)
-			if err != nil || !tc.visible {
+			tc, _ := t.Get(vRow, hRow)
+			if !tc.visible {
 				return false
 			}
 		}
