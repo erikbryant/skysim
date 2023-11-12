@@ -50,8 +50,19 @@ func (s SkySim) robot() bool {
 	return s.players[s.player].robot
 }
 
+// revealRobot has the robot reveal a single card
+func (s *SkySim) revealRobot() {
+	hRow, vRow := s.tableau().FirstHidden()
+	s.tableau().Reveal(vRow, hRow, &s.cards)
+}
+
 // reveal reveals a single card
 func (s *SkySim) reveal() {
+	if s.robot() {
+		s.revealRobot()
+		return
+	}
+
 	var vRow int
 	var hRow int
 
@@ -94,8 +105,51 @@ func (s *SkySim) draw() {
 	}
 }
 
+// takeTurnRobot processes a robot's turn and returns whether they have gone out (or quit)
+func (s *SkySim) takeTurnRobot() bool {
+	// Should we replace a tableau card with the discard?
+	discardRank := s.cards.LookDiscard()
+	if discardRank < cards.AvgRank() {
+		// This is a low card; we'll use it
+		s.cards.DrawDiscard()
+		visibleRank, vRow, hRow := s.tableau().HighestVisible()
+		if discardRank > visibleRank {
+			// Our visible cards are lower; replace first hidden card instead
+			vRow, hRow = s.tableau().FirstHidden()
+		}
+		s.tableau().Replace(vRow, hRow, discardRank, &s.cards)
+		return !s.tableau().Out()
+	}
+
+	// Draw a card
+	drawRank := s.cards.Draw()
+
+	// Can we use it?
+	if drawRank < cards.AvgRank() {
+		// This is a low card; we'll use it
+		visibleRank, vRow, hRow := s.tableau().HighestVisible()
+		if drawRank > visibleRank {
+			// Our visible cards are lower; replace first hidden card instead
+			vRow, hRow = s.tableau().FirstHidden()
+		}
+		s.tableau().Replace(vRow, hRow, drawRank, &s.cards)
+		return !s.tableau().Out()
+	}
+
+	// We can't use it. Discard it and reveal a card.
+	s.cards.Discard(drawRank)
+	vRow, hRow := s.tableau().FirstHidden()
+	s.tableau().Reveal(vRow, hRow, &s.cards)
+
+	return !s.tableau().Out()
+}
+
 // takeTurn processes a player's turn and returns whether they have gone out (or quit)
 func (s *SkySim) takeTurn() bool {
+	if s.robot() {
+		return s.takeTurnRobot()
+	}
+
 	fmt.Println()
 	s.print()
 
@@ -173,12 +227,12 @@ func (s SkySim) print() {
 			pType = "robot"
 		}
 		header := fmt.Sprintf("** Player %d (%s) **", i, pType)
-		if i == s.player {
-			mask := color.New(color.FgGreen, color.Bold)
-			mask.Printf(header)
-		} else if i == s.firstOut {
+		if i == s.firstOut {
 			header += " <-- First out!"
 			mask := color.New(color.FgRed, color.Bold)
+			mask.Printf(header)
+		} else if i == s.player {
+			mask := color.New(color.FgGreen, color.Bold)
 			mask.Printf(header)
 		} else {
 			fmt.Printf(header)

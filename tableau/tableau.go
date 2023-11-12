@@ -128,6 +128,40 @@ func (t *Tableau) removeCompletedVRows(c *cards.Cards) {
 	}
 }
 
+// FirstHidden returns the locatio of the first hidden card
+func (t Tableau) FirstHidden() (int, int) {
+	for vRow := range t {
+		for hRow := range t[vRow] {
+			c, _ := t.Get(vRow, hRow)
+			if !c.visible {
+				return vRow, hRow
+			}
+		}
+	}
+
+	return -1, -1
+}
+
+// HighestVisible returns the rank and location of the highest visible card
+func (t Tableau) HighestVisible() (int, int, int) {
+	rank := -999
+	vr := -1
+	hr := -1
+
+	for vRow := range t {
+		for hRow := range t[vRow] {
+			c, _ := t.Get(vRow, hRow)
+			if c.visible && c.rank > rank {
+				rank = c.rank
+				vr = vRow
+				hr = hRow
+			}
+		}
+	}
+
+	return rank, vr, hr
+}
+
 func (t *Tableau) RevealAll(c *cards.Cards) {
 	// Count backwards, as some of the vRows may disappear
 	// when they are revealed if they are a matching row
