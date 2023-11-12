@@ -29,7 +29,7 @@ func New(humans, robots int) SkySim {
 	for i := 0; i < humans+robots; i++ {
 		p := Player{
 			tableau.Deal(&s.cards),
-			i < humans,
+			i >= humans,
 		}
 		s.players = append(s.players, p)
 	}
@@ -40,14 +40,14 @@ func New(humans, robots int) SkySim {
 	return s
 }
 
-// tableau returns a poiter to the current player's tableau
+// tableau returns a pointer to the current player's tableau
 func (s SkySim) tableau() *tableau.Tableau {
 	return &s.players[s.player].tableau
 }
 
 // robot returns true if this player is a robot
 func (s SkySim) robot() bool {
-	return s.player != 0
+	return s.players[s.player].robot
 }
 
 // reveal reveals a single card
@@ -168,7 +168,11 @@ func (s SkySim) print() {
 	s.cards.Print()
 	for i, p := range s.players {
 		fmt.Println()
-		header := fmt.Sprintf("** Player %d **", i)
+		pType := "human"
+		if p.robot {
+			pType = "robot"
+		}
+		header := fmt.Sprintf("** Player %d (%s) **", i, pType)
 		if i == s.player {
 			mask := color.New(color.FgGreen, color.Bold)
 			mask.Printf(header)
