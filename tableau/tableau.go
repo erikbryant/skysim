@@ -176,8 +176,7 @@ func (t Tableau) Score() (int, int, int) {
 
 func (t Tableau) Print(c cards.Cards) {
 	visible, estimated, _ := t.Score()
-	fmt.Printf("%2d %2d ", visible, estimated)
-	c.Print()
+	fmt.Printf("%2d %2d\n", visible, estimated)
 
 	if t.vRows() == 0 {
 		fmt.Println("All vertical rows empty! :)")
