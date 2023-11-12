@@ -174,6 +174,7 @@ func (s *SkySim) Play() {
 }
 
 func (s SkySim) Print() {
+	fmt.Printf("\n\n")
 	s.cards.Print()
 	for i, t := range s.tableaus {
 		fmt.Println()
