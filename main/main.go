@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	s := skysim.New(3)
+	s := skysim.New(1, 2)
 	s.Play()
 }

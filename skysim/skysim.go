@@ -8,21 +8,30 @@ import (
 	"github.com/fatih/color"
 )
 
+type Player struct {
+	tableau tableau.Tableau
+	robot   bool
+}
+
 type SkySim struct {
 	cards    cards.Cards
-	tableaus []tableau.Tableau
+	players  []Player
 	player   int
 	firstOut int
 }
 
 // New returns a new game, ready to play
-func New(players int) SkySim {
+func New(humans, robots int) SkySim {
 	s := SkySim{}
 
 	s.cards = cards.New()
 
-	for i := 0; i < players; i++ {
-		s.tableaus = append(s.tableaus, tableau.Deal(&s.cards))
+	for i := 0; i < humans+robots; i++ {
+		p := Player{
+			tableau.Deal(&s.cards),
+			i < humans,
+		}
+		s.players = append(s.players, p)
 	}
 
 	s.player = 0
@@ -33,7 +42,7 @@ func New(players int) SkySim {
 
 // tableau returns a poiter to the current player's tableau
 func (s SkySim) tableau() *tableau.Tableau {
-	return &s.tableaus[s.player]
+	return &s.players[s.player].tableau
 }
 
 // robot returns true if this player is a robot
@@ -120,7 +129,7 @@ func (s SkySim) gameOver() bool {
 // Play plays the game
 func (s *SkySim) Play() {
 	// Players each reveal two cards
-	for s.player = range s.tableaus {
+	for s.player = range s.players {
 		s.print()
 		s.reveal()
 		s.print()
@@ -130,9 +139,11 @@ func (s *SkySim) Play() {
 
 	// Players alternate turns until someone goes out
 	// then each other player gets one more turn
-	for !s.gameOver() {
-		for s.player = range s.tableaus {
+	playing = true
+	for playing {
+		for s.player = range s.players {
 			if s.gameOver() {
+				playing = false
 				break
 			}
 			if !s.takeTurn() && s.firstOut < 0 {
@@ -145,7 +156,7 @@ func (s *SkySim) Play() {
 	fmt.Println()
 
 	// Players reveal and score
-	for s.player = range s.tableaus {
+	for s.player = range s.players {
 		s.tableau().RevealAll(&s.cards)
 	}
 	s.print()
@@ -155,7 +166,7 @@ func (s *SkySim) Play() {
 func (s SkySim) print() {
 	fmt.Printf("\n\n")
 	s.cards.Print()
-	for i, t := range s.tableaus {
+	for i, p := range s.players {
 		fmt.Println()
 		header := fmt.Sprintf("** Player %d **", i)
 		if i == s.player {
@@ -169,7 +180,7 @@ func (s SkySim) print() {
 			fmt.Printf(header)
 		}
 		fmt.Println()
-		t.Print(s.cards)
+		p.tableau.Print(s.cards)
 	}
 }
 
