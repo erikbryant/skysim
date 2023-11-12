@@ -61,6 +61,10 @@ func choose(choices string) byte {
 	}
 }
 
+func (s SkySim) tableau() *tableau.Tableau {
+	return &s.tableaus[s.player]
+}
+
 // Reveal reveals a single card
 func (s *SkySim) Reveal() {
 	var vRow int
@@ -69,7 +73,7 @@ func (s *SkySim) Reveal() {
 	for {
 		fmt.Print("Choose a card to reveal (vRow hRow): ")
 		fmt.Scanf("%d %d", &vRow, &hRow)
-		if s.tableaus[s.player].Reveal(vRow, hRow, &s.cards) == nil {
+		if s.tableau().Reveal(vRow, hRow, &s.cards) == nil {
 			break
 		}
 	}
@@ -82,7 +86,7 @@ func (s *SkySim) Replace(rank int) {
 
 	fmt.Print("Choose a card to replace (vRow hRow): ")
 	fmt.Scanf("%d %d", &vRow, &hRow)
-	s.tableaus[s.player].Replace(vRow, hRow, rank, &s.cards)
+	s.tableau().Replace(vRow, hRow, rank, &s.cards)
 }
 
 // Draw draws (and plays) a card
@@ -129,7 +133,7 @@ func (s *SkySim) TakeTurn() bool {
 		return false
 	}
 
-	return !s.tableaus[s.player].Out()
+	return !s.tableau().Out()
 }
 
 func (s SkySim) gameOver() bool {
@@ -164,7 +168,7 @@ func (s *SkySim) Play() {
 
 	// Players reveal and score
 	for s.player = range s.tableaus {
-		s.tableaus[s.player].RevealAll(&s.cards)
+		s.tableau().RevealAll(&s.cards)
 	}
 	s.Print()
 }
@@ -187,9 +191,8 @@ func (s SkySim) Print() {
 		fmt.Println()
 		t.Print(s.cards)
 	}
-	// s.tableaus[s.player].Print(s.cards)
 }
 
 func (s SkySim) PrintDebug() {
-	s.tableaus[s.player].PrintDebug(s.cards)
+	s.tableau().PrintDebug(s.cards)
 }
