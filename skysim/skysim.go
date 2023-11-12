@@ -139,7 +139,7 @@ func (s *SkySim) Play() {
 
 	// Players alternate turns until someone goes out
 	// then each other player gets one more turn
-	playing = true
+	playing := true
 	for playing {
 		for s.player = range s.players {
 			if s.gameOver() {
