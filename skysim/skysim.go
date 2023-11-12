@@ -80,7 +80,7 @@ func (s *SkySim) Replace(rank int) {
 	var vRow int
 	var hRow int
 
-	fmt.Print("\nChoose a card to replace (vRow hRow): ")
+	fmt.Print("Choose a card to replace (vRow hRow): ")
 	fmt.Scanf("%d %d", &vRow, &hRow)
 	s.tableaus[s.player].Replace(vRow, hRow, rank, &s.cards)
 }
@@ -172,12 +172,19 @@ func (s *SkySim) Play() {
 func (s SkySim) Print() {
 	s.cards.Print()
 	for i, t := range s.tableaus {
+		fmt.Println()
+		header := fmt.Sprintf("** Player %d **", i)
 		if i == s.player {
 			mask := color.New(color.FgGreen, color.Bold)
-			mask.Printf("\n** Player %d **\n", i)
+			mask.Printf(header)
+		} else if i == s.firstOut {
+			header += " <-- First out!"
+			mask := color.New(color.FgRed, color.Bold)
+			mask.Printf(header)
 		} else {
-			fmt.Printf("\n** Player %d **\n", i)
+			fmt.Printf(header)
 		}
+		fmt.Println()
 		t.Print(s.cards)
 	}
 	// s.tableaus[s.player].Print(s.cards)
