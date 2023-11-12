@@ -107,6 +107,7 @@ func (s *SkySim) draw() {
 
 // takeTurnRobot processes a robot's turn and returns whether they have gone out (or quit)
 func (s *SkySim) takeTurnRobot() bool {
+	fmt.Println("Robot #", s.player)
 	// Should we replace a tableau card with the discard?
 	discardRank := s.cards.LookDiscard()
 	if discardRank < cards.AvgRank() {
@@ -117,12 +118,15 @@ func (s *SkySim) takeTurnRobot() bool {
 			// Our visible cards are lower; replace first hidden card instead
 			vRow, hRow = s.tableau().FirstHidden()
 		}
+		fmt.Printf("  Replacing %d, %d with discard (%d)\n", vRow, hRow, discardRank)
 		s.tableau().Replace(vRow, hRow, discardRank, &s.cards)
 		return !s.tableau().Out()
 	}
 
 	// Draw a card
+	fmt.Printf("  Ignoring discard (%d); drawing instead...\n", discardRank)
 	drawRank := s.cards.Draw()
+	fmt.Println("  Drew:", drawRank)
 
 	// Can we use it?
 	if drawRank < cards.AvgRank() {
@@ -132,6 +136,7 @@ func (s *SkySim) takeTurnRobot() bool {
 			// Our visible cards are lower; replace first hidden card instead
 			vRow, hRow = s.tableau().FirstHidden()
 		}
+		fmt.Printf("  Replacing %d, %d with draw (%d)\n", vRow, hRow, drawRank)
 		s.tableau().Replace(vRow, hRow, drawRank, &s.cards)
 		return !s.tableau().Out()
 	}
@@ -139,6 +144,7 @@ func (s *SkySim) takeTurnRobot() bool {
 	// We can't use it. Discard it and reveal a card.
 	s.cards.Discard(drawRank)
 	vRow, hRow := s.tableau().FirstHidden()
+	fmt.Printf("  Ignoring draw; revealing %d, %d\n", vRow, hRow)
 	s.tableau().Reveal(vRow, hRow, &s.cards)
 
 	return !s.tableau().Out()
