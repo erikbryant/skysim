@@ -42,7 +42,7 @@ func (s SkySim) robot() bool {
 }
 
 // Reveal reveals a single card
-func (s *SkySim) Reveal() {
+func (s *SkySim) reveal() {
 	if s.robot() {
 		s.tableau().Reveal(0, 0, &s.cards)
 		s.tableau().Reveal(1, 0, &s.cards)
@@ -62,7 +62,7 @@ func (s *SkySim) Reveal() {
 }
 
 // Replace replaces a card in the tableau with the given card
-func (s *SkySim) Replace(rank int) {
+func (s *SkySim) replace(rank int) {
 	var vRow int
 	var hRow int
 
@@ -72,7 +72,7 @@ func (s *SkySim) Replace(rank int) {
 }
 
 // Draw draws (and plays) a card
-func (s *SkySim) Draw() {
+func (s *SkySim) draw() {
 	rank := s.cards.Draw()
 	fmt.Print("Drew: ")
 	mask := cards.MaskForRank(rank)
@@ -84,17 +84,17 @@ func (s *SkySim) Draw() {
 
 	switch util.Choose("rd") {
 	case 'r':
-		s.Replace(rank)
+		s.replace(rank)
 	case 'd':
 		s.cards.Discard(rank)
-		s.Reveal()
+		s.reveal()
 	}
 }
 
 // TakeAnotherTurn processes a player's turn and returns whether they have gone out (or quit)
-func (s *SkySim) TakeTurn() bool {
+func (s *SkySim) takeTurn() bool {
 	fmt.Println()
-	s.Print()
+	s.print()
 
 	fmt.Println("(d)raw a new card")
 	fmt.Println("(r)eplace a tableau card with the discard")
@@ -103,14 +103,14 @@ func (s *SkySim) TakeTurn() bool {
 
 	switch util.Choose("drpq") {
 	case 'd':
-		s.Draw()
+		s.draw()
 	case 'r':
 		rank := s.cards.DrawDiscard()
-		s.Replace(rank)
+		s.replace(rank)
 	case 'p':
 		fmt.Println()
-		s.PrintDebug()
-		s.TakeTurn()
+		s.printDebug()
+		s.takeTurn()
 	case 'q':
 		return false
 	}
@@ -127,12 +127,12 @@ func (s SkySim) gameOver() bool {
 func (s *SkySim) Play() {
 	// Players each reveal two cards
 	for s.player = range s.tableaus {
-		s.Print()
-		s.Reveal()
-		s.Print()
-		s.Reveal()
+		s.print()
+		s.reveal()
+		s.print()
+		s.reveal()
 	}
-	s.Print()
+	s.print()
 
 	// Players alternate turns until someone goes out
 	// then each other player gets one more turn
@@ -141,7 +141,7 @@ func (s *SkySim) Play() {
 			if s.gameOver() {
 				break
 			}
-			if !s.TakeTurn() && s.firstOut < 0 {
+			if !s.takeTurn() && s.firstOut < 0 {
 				// Record which player went out first
 				s.firstOut = s.player
 			}
@@ -154,11 +154,11 @@ func (s *SkySim) Play() {
 	for s.player = range s.tableaus {
 		s.tableau().RevealAll(&s.cards)
 	}
-	s.Print()
+	s.print()
 }
 
 // Print prints the current game state
-func (s SkySim) Print() {
+func (s SkySim) print() {
 	fmt.Printf("\n\n")
 	s.cards.Print()
 	for i, t := range s.tableaus {
@@ -180,6 +180,6 @@ func (s SkySim) Print() {
 }
 
 // PrintDebug prints the current game state, revealing any hidden information
-func (s SkySim) PrintDebug() {
+func (s SkySim) printDebug() {
 	s.tableau().PrintDebug(s.cards)
 }
