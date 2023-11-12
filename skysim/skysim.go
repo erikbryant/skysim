@@ -18,6 +18,7 @@ type SkySim struct {
 	firstOut int
 }
 
+// New returns a new game, ready to play
 func New(players int) SkySim {
 	s := SkySim{}
 
@@ -61,6 +62,7 @@ func choose(choices string) byte {
 	}
 }
 
+// tableau returns a poiter to the current player's tableau
 func (s SkySim) tableau() *tableau.Tableau {
 	return &s.tableaus[s.player]
 }
@@ -136,10 +138,12 @@ func (s *SkySim) TakeTurn() bool {
 	return !s.tableau().Out()
 }
 
+// gameOver returns true when a player has gone out
 func (s SkySim) gameOver() bool {
 	return s.firstOut >= 0 && s.player == s.firstOut
 }
 
+// Play plays the game
 func (s *SkySim) Play() {
 	// Players each reveal two cards
 	for s.player = range s.tableaus {
@@ -173,6 +177,7 @@ func (s *SkySim) Play() {
 	s.Print()
 }
 
+// Print prints the current game state
 func (s SkySim) Print() {
 	fmt.Printf("\n\n")
 	s.cards.Print()
@@ -194,6 +199,7 @@ func (s SkySim) Print() {
 	}
 }
 
+// PrintDebug prints the current game state, revealing any hidden information
 func (s SkySim) PrintDebug() {
 	s.tableau().PrintDebug(s.cards)
 }
