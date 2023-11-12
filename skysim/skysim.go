@@ -4,11 +4,8 @@ import (
 	"fmt"
 	"github.com/erikbryant/skysim/cards"
 	"github.com/erikbryant/skysim/tableau"
+	"github.com/erikbryant/skysim/util"
 	"github.com/fatih/color"
-	"os"
-	"strings"
-
-	"golang.org/x/term"
 )
 
 type SkySim struct {
@@ -34,41 +31,24 @@ func New(players int) SkySim {
 	return s
 }
 
-// readChar returns the key that was pressed
-func readChar() byte {
-	// switch stdin into 'raw' mode
-	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-	if err != nil {
-		panic(err)
-	}
-	defer term.Restore(int(os.Stdin.Fd()), oldState)
-
-	b := make([]byte, 1)
-	_, err = os.Stdin.Read(b)
-	if err != nil {
-		panic(err)
-	}
-
-	return b[0]
-}
-
-// choose returns which of the choices the user selects
-func choose(choices string) byte {
-	for {
-		choice := readChar()
-		if strings.Index(choices, string(choice)) != -1 {
-			return choice
-		}
-	}
-}
-
 // tableau returns a poiter to the current player's tableau
 func (s SkySim) tableau() *tableau.Tableau {
 	return &s.tableaus[s.player]
 }
 
+// robot returns true if this player is a robot
+func (s SkySim) robot() bool {
+	return s.player != 0
+}
+
 // Reveal reveals a single card
 func (s *SkySim) Reveal() {
+	if s.robot() {
+		s.tableau().Reveal(0, 0, &s.cards)
+		s.tableau().Reveal(1, 0, &s.cards)
+		return
+	}
+
 	var vRow int
 	var hRow int
 
@@ -102,7 +82,7 @@ func (s *SkySim) Draw() {
 	fmt.Println("(r)eplace a tableau card")
 	fmt.Println("(d)iscard it and reveal one")
 
-	switch choose("rd") {
+	switch util.Choose("rd") {
 	case 'r':
 		s.Replace(rank)
 	case 'd':
@@ -121,7 +101,7 @@ func (s *SkySim) TakeTurn() bool {
 	fmt.Println("(p)rint debug")
 	fmt.Println("(q)uit")
 
-	switch choose("drpq") {
+	switch util.Choose("drpq") {
 	case 'd':
 		s.Draw()
 	case 'r':
