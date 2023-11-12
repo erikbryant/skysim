@@ -41,14 +41,8 @@ func (s SkySim) robot() bool {
 	return s.player != 0
 }
 
-// Reveal reveals a single card
+// reveal reveals a single card
 func (s *SkySim) reveal() {
-	if s.robot() {
-		s.tableau().Reveal(0, 0, &s.cards)
-		s.tableau().Reveal(1, 0, &s.cards)
-		return
-	}
-
 	var vRow int
 	var hRow int
 
@@ -61,7 +55,7 @@ func (s *SkySim) reveal() {
 	}
 }
 
-// Replace replaces a card in the tableau with the given card
+// replace replaces a card in the tableau with the given card
 func (s *SkySim) replace(rank int) {
 	var vRow int
 	var hRow int
@@ -71,7 +65,7 @@ func (s *SkySim) replace(rank int) {
 	s.tableau().Replace(vRow, hRow, rank, &s.cards)
 }
 
-// Draw draws (and plays) a card
+// draw draws (and plays) a card
 func (s *SkySim) draw() {
 	rank := s.cards.Draw()
 	fmt.Print("Drew: ")
@@ -91,7 +85,7 @@ func (s *SkySim) draw() {
 	}
 }
 
-// TakeAnotherTurn processes a player's turn and returns whether they have gone out (or quit)
+// takeTurn processes a player's turn and returns whether they have gone out (or quit)
 func (s *SkySim) takeTurn() bool {
 	fmt.Println()
 	s.print()
@@ -157,7 +151,7 @@ func (s *SkySim) Play() {
 	s.print()
 }
 
-// Print prints the current game state
+// print prints the current game state
 func (s SkySim) print() {
 	fmt.Printf("\n\n")
 	s.cards.Print()
@@ -179,7 +173,7 @@ func (s SkySim) print() {
 	}
 }
 
-// PrintDebug prints the current game state, revealing any hidden information
+// printDebug prints the current game state, revealing any hidden information
 func (s SkySim) printDebug() {
 	s.tableau().PrintDebug(s.cards)
 }
