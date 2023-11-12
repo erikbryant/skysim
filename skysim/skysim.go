@@ -114,7 +114,7 @@ func (s *SkySim) takeTurnRobot() bool {
 		// This is a low card; we'll use it
 		s.cards.DrawDiscard()
 		visibleRank, vRow, hRow := s.tableau().HighestVisible()
-		if discardRank > visibleRank {
+		if visibleRank < discardRank {
 			// Our visible cards are lower; replace first hidden card instead
 			vRow, hRow = s.tableau().FirstHidden()
 		}
@@ -132,7 +132,7 @@ func (s *SkySim) takeTurnRobot() bool {
 	if drawRank < cards.AvgRank() {
 		// This is a low card; we'll use it
 		visibleRank, vRow, hRow := s.tableau().HighestVisible()
-		if drawRank > visibleRank {
+		if visibleRank < discardRank {
 			// Our visible cards are lower; replace first hidden card instead
 			vRow, hRow = s.tableau().FirstHidden()
 		}
