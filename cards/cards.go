@@ -2,9 +2,10 @@ package cards
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"math/rand"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 // How many cards are there of each rank
@@ -14,21 +15,21 @@ type dist struct {
 }
 
 var distribution = []dist{
-	dist{-2, 5},
-	dist{-1, 10},
-	dist{0, 15},
-	dist{1, 10},
-	dist{2, 10},
-	dist{3, 10},
-	dist{4, 10},
-	dist{5, 10},
-	dist{6, 10},
-	dist{7, 10},
-	dist{8, 10},
-	dist{9, 10},
-	dist{10, 10},
-	dist{11, 10},
-	dist{12, 10},
+	{-2, 5},
+	{-1, 10},
+	{0, 15},
+	{1, 10},
+	{2, 10},
+	{3, 10},
+	{4, 10},
+	{5, 10},
+	{6, 10},
+	{7, 10},
+	{8, 10},
+	{9, 10},
+	{10, 10},
+	{11, 10},
+	{12, 10},
 }
 
 // maskForRank returns the console text mask for the given rank
