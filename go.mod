@@ -3,7 +3,7 @@ module github.com/erikbryant/skysim
 go 1.21.6
 
 require (
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	golang.org/x/term v0.20.0
 )
 
