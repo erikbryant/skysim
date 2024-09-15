@@ -1,6 +1,6 @@
 module github.com/erikbryant/skysim
 
-go 1.21.6
+go 1.23.1
 
 require (
 	github.com/fatih/color v1.17.0
