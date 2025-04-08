@@ -236,14 +236,13 @@ func (s SkySim) print() {
 		if i == s.firstOut {
 			header += " <-- First out!"
 			mask := color.New(color.FgRed, color.Bold)
-			mask.Printf(header)
+			mask.Println(header)
 		} else if i == s.player {
 			mask := color.New(color.FgGreen, color.Bold)
-			mask.Printf(header)
+			mask.Println(header)
 		} else {
-			fmt.Printf(header)
+			fmt.Println(header)
 		}
-		fmt.Println()
 		p.tableau.Print(s.cards)
 	}
 }
